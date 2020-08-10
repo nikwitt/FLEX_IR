@@ -6,12 +6,14 @@ from .ir_sampling_points import write_data
 import os
 
 class ir_load:
-    def __init__(self, Lambda, beta):
+    def __init__(self, Lambda, beta, delta):
         """
         Function for loading irbasis on precomputed grid points.
-        Takes object 'p' as an argument that needs values p.Lambda and p.beta,
-        i.e. cutoff and inverse temperature for which irbasis is needed.
+        Takes 'Lambda', 'beta' and 'delta' as input,
+        i.e. irbasis parameter, inverse temperature and basis cutoff error.
         
+        Ver. 1.1: changed storage of sampling points,
+                  added support of different basis sizes.
         Ver. 1.0: only U vectors on imaginary time and Matsubara frequencies
         are supported.
         """
@@ -20,30 +22,60 @@ class ir_load:
         self.fermi_basis = irbasis.load('F', Lambda)
         self.bose_basis  = irbasis.load('B', Lambda)
 
+        ### Basis size for given cutoff?
+        self.f_N_IR = ir_load.basis_cutoff(self.fermi_basis, delta)
+        self.b_N_IR = ir_load.basis_cutoff(self.bose_basis,  delta)
+        self.f_l = np.arange(self.f_N_IR)
+        self.b_l = np.arange(self.b_N_IR)
+
         ### Load sampling points for both statistics
         self.f_sp = self.sp_load(Lambda, self.fermi_basis)
         self.b_sp = self.sp_load(Lambda, self.bose_basis )
 
-        ### Generate normalized tau grid [add -beta, beta to interval]
-        self.x_smpl_fermi = np.append(np.append(-1, self.f_sp[0][-1]), 1)
-        self.x_smpl_bose  = np.append(np.append(-1, self.b_sp[0][-1]), 1)
 
-        ### Generate U vectors on tau grids
+        #--------------------------------------------------------------
+        ### Generate normalized tau grid [add -beta, beta to interval]
+        self.x_smpl_fermi = self.f_sp[0][self.f_N_IR-1]
+        self.x_smpl_bose  = self.b_sp[0][self.b_N_IR-1]
+
+        ### Generate U functions on tau grids
         # fermi_Ulx       : fermionic U vectors on fermionic tau grid
         # fermi_Ulx_boson : fermionic U vectors on bosonic   tau grid
         # bose_Ulx        : bosonic   U vectors on bosonic   tau grid
         # bose_Ulx_fermi  : bosonic   U vectors on fermionic tau grid
-        self.fermi_Ulx, self.bose_Ulx = self.Ulx_load(self.x_smpl_fermi,self.x_smpl_bose,beta)
-        self.fermi_Ulx_boson, self.bose_Ulx_fermi = self.Ulx_load(self.x_smpl_bose,self.x_smpl_fermi,beta)
-        
+        # Matrix dimension: U(x, l)
+        self.fermi_Ulx, self.bose_Ulx =\
+            self.Ulx_load(self.x_smpl_fermi,self.x_smpl_bose,beta)
+        self.fermi_Ulx_boson, self.bose_Ulx_fermi =\
+            self.Ulx_load(self.x_smpl_bose,self.x_smpl_fermi,beta)
+            
+        ### Generate U functions at tau = 0 
+        self.fermi_Ulx_0, self.bose_Ulx_0 =\
+            self.Ulx_load(np.array([0]),np.array([0]),beta)    
+            
+            
+        #--------------------------------------------------------------
         ### Generate indexed Matsubara frequency grid
-        self.iwn_smpl_fermi = self.f_sp[2][-1]
-        self.iwn_smpl_bose  = self.b_sp[2][-1]        
+        self.iwn_smpl_fermi = self.f_sp[2][self.f_N_IR-1]
+        self.iwn_smpl_bose  = self.b_sp[2][self.b_N_IR-1]       
         
-        ### Generate U vectors on Matsubara frequency grid
-        self.fermi_Uln = np.sqrt(beta)*self.fermi_basis.compute_unl(self.iwn_smpl_fermi)
-        self.bose_Uln  = np.sqrt(beta)*self.bose_basis.compute_unl(self.iwn_smpl_bose)
         
+        ### Generate U functions on Matsubara frequency grid
+        self.fermi_Uln = np.sqrt(beta)*\
+            self.fermi_basis.compute_unl(self.iwn_smpl_fermi,self.f_l[None,:])
+        self.bose_Uln  = np.sqrt(beta)*\
+             self.bose_basis.compute_unl(self.iwn_smpl_bose, self.b_l[None,:])
+        
+        
+        #--------------------------------------------------------------
+        ### Calculate inverse matrices of U vectors        
+        self.fermi_Ulx_inv = np.linalg.inv(self.fermi_Ulx)
+        self.fermi_Uln_inv = np.linalg.inv(self.fermi_Uln)
+        self.bose_Ulx_inv  = np.linalg.inv(self.bose_Ulx )
+        self.bose_Uln_inv  = np.linalg.inv(self.bose_Uln )
+        
+        
+        #--------------------------------------------------------------
         ### Calculate tau/Matsubara frequency grid
         self.fm = 1j*np.pi/beta*(2*self.iwn_smpl_fermi + np.ones(len(self.iwn_smpl_fermi)))
         self.bm = 1j*np.pi/beta*(2*self.iwn_smpl_bose)
@@ -55,7 +87,12 @@ class ir_load:
         self.f_iwn_zero_ind = list(self.iwn_smpl_fermi).index(0)
         self.b_iwn_zero_ind = list(self.iwn_smpl_bose ).index(0)
 
-    
+  
+#----------------------------------------------------------------------
+#----------------------------------------------------------------------
+#----------------------------------------------------------------------
+        
+        
     def sp_load(self, Lambda, b):
         """
         Loads sampling point data from files.
@@ -83,23 +120,44 @@ class ir_load:
         """
         Load U vectors for given normalized tau grid.
         """
-        Ulx_fermi = np.zeros((self.fermi_basis.dim(),len(fermi_x)))
-        Ulx_bose  = np.zeros((self.bose_basis.dim(), len(bose_x )))
-        for l in range(self.fermi_basis.dim()):
-            Ulx_fermi[l] = np.sqrt(2/beta)*self.fermi_basis.ulx(l,fermi_x)
-        for l in range(self.bose_basis.dim()):
-            Ulx_bose[l]  = np.sqrt(2/beta)*self.bose_basis.ulx(l,bose_x)
+
+        Ulx_fermi = np.sqrt(2/beta)*self.fermi_basis.ulx(self.f_l[None,:],fermi_x[:,None])
+        Ulx_bose  = np.sqrt(2/beta)* self.bose_basis.ulx(self.b_l[None,:], bose_x[:,None])
+        
+        return Ulx_fermi, Ulx_bose
+    
+    
+    def basis_cutoff(b, delta):
+        """
+        Parameters
+        ----------
+        b : IR basis object
+        delta : Cutoff for singular values
+
+        Returns
+        -------
+        ideal basis size for given cutoff
+
+        """
+        
+        ### Find smallest Nl for s_l/s_0 < delta
+        delta_compare = b.sl()/b.sl(0)        
+        N_IR = next((i for i, j in enumerate(delta_compare) if j<delta), None)
+        
+        # Include exception: no Nl found in above's 
+        if not max(delta_compare < delta):
+            N_IR = b.dim()
+        
+        ### Find optimal Nl depending on statistics
+        # Fermions -> even
+        # Bosons   -> odd
+        if b.statistics == 'F' and N_IR % 2 == 1:
+            N_IR += 1
+        elif b.statistics == 'B' and N_IR % 2 == 0:
+            N_IR += 1
             
-        return np.swapaxes(Ulx_fermi,0,1), np.swapaxes(Ulx_bose,0,1)
-
-
-##### Old code snipptes...
-#self.x_smpl_fermi = np.append(np.append(-1,np.sort(np.concatenate(self.f_sp[0]))),1)
-#self.x_smpl_bose  = np.append(np.append(-1,np.sort(np.concatenate(self.b_sp[0]))),1)       
-#self.x_smpl_fermi = np.append(-1, irbasis.sampling_points_x(self.fermi_basis,self.fermi_basis.dim()-1))
-#self.x_smpl_bose  = np.append(-1, irbasis.sampling_points_x(self.bose_basis, self.bose_basis.dim()-1))
-
-#self.iwn_smpl_fermi = np.sort(np.concatenate(self.f_sp[2]))
-#self.iwn_smpl_bose  = np.sort(np.concatenate(self.b_sp[2]))
-#self.iwn_smpl_fermi = irbasis.sampling_points_matsubara(self.fermi_basis,self.bose_basis.dim()-1)
-#self.iwn_smpl_bose  = irbasis.sampling_points_matsubara(self.bose_basis, self.bose_basis.dim()-1)
+        # Safety net if N_IR > basis size
+        if N_IR > b.dim():
+            N_IR -= 2
+    
+        return N_IR
