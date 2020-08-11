@@ -1,9 +1,0 @@
-setup.py
-ir_load/__init__.py
-ir_load/ir_load.py
-ir_load/ir_sampling_points.py
-ir_load.egg-info/PKG-INFO
-ir_load.egg-info/SOURCES.txt
-ir_load.egg-info/dependency_links.txt
-ir_load.egg-info/not-zip-safe
-ir_load.egg-info/top_level.txt
