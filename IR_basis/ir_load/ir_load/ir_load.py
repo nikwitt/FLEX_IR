@@ -51,7 +51,7 @@ class ir_load:
             
         ### Generate U functions at tau = 0 
         self.fermi_Ulx_0, self.bose_Ulx_0 =\
-            self.Ulx_load(np.array([0]),np.array([0]),beta)    
+            self.Ulx_load(np.array([-1]),np.array([-1]),beta)
             
             
         #--------------------------------------------------------------
@@ -73,7 +73,19 @@ class ir_load:
         self.fermi_Uln_inv = np.linalg.inv(self.fermi_Uln)
         self.bose_Ulx_inv  = np.linalg.inv(self.bose_Ulx )
         self.bose_Uln_inv  = np.linalg.inv(self.bose_Uln )
+
+
+        #--------------------------------------------------------------
+        ### Calculate iw <-> tau matrices      
+        self.fermi_iw_to_tau       = np.dot(self.fermi_Ulx       , self.fermi_Uln_inv)
+        self.fermi_iw_to_tau_boson = np.dot(self.fermi_Ulx_boson , self.fermi_Uln_inv)
+        self.fermi_iw_to_tau_0     = np.dot(self.fermi_Ulx_0[0]  , self.fermi_Uln_inv)
+        self.fermi_tau_to_iw       = np.dot(self.fermi_Uln       , self.fermi_Ulx_inv)
         
+        self.bose_iw_to_tau        = np.dot(self.bose_Ulx , self.bose_Uln_inv)
+        self.bose_iw_to_tau_fermi  = np.dot(self.bose_Ulx_fermi , self.bose_Uln_inv)
+        self.bose_tau_to_iw        = np.dot(self.bose_Uln , self.bose_Ulx_inv)
+
         
         #--------------------------------------------------------------
         ### Calculate tau/Matsubara frequency grid
@@ -102,8 +114,8 @@ class ir_load:
         ### Check if data is existent
         # Generate path to files
         dirname, _ = os.path.split(os.path.abspath(__file__))
-        path_str = dirname + os.path.normcase("/sampling_points/" + "{}_" + b.statistics + \
-                              "_L_" + str(Lambda) + ".npy")
+        path_str = dirname + os.path.normcase("/sampling_points/") + "{}_" + b.statistics + \
+                              "_L_{}.npy".format(int(Lambda))
 
         if not os.path.isfile(path_str.format("matsubara_smpl")):
             ### Save sampling points to file for future calculations

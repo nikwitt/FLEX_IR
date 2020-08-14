@@ -1,7 +1,7 @@
 #Script for calculating and writing best sampling points (from irbasis.sampling_points_...)
 
 import numpy as np
-import irbasis
+from irbasis import irbasis
 
 class write_data:
     """

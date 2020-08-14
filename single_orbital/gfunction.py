@@ -160,12 +160,12 @@ class gfunction_calc:
         ##### Finished loop, save results
         print("Saving all data now...", file=open(p.Logstr,'a'))
         with h5py.File(p.savepath,'a') as file: 
-            group = file.create_group('gfunction')
+            group = file.require_group('gfunction')
             
-            group.create_dataset('gkio' , data=self.gkio )
-            group.create_dataset('sigma', data=self.sigma)
-            group.create_dataset('mu'   , data=self.mu)
-            group.create_dataset('BSE_max_kernel', data=BSE_max_kernel)
+            group.require_dataset('gkio' , data=self.gkio , shape=self.gkio.shape,  dtype=complex)
+            group.require_dataset('sigma', data=self.sigma, shape=self.sigma.shape, dtype=complex)
+            group.require_dataset('mu'   , data=self.mu,    shape=(),               dtype=float)
+            group.require_dataset('BSE_max_kernel', data=BSE_max_kernel, shape=(),  dtype=float)
             #group.create_dataset('ckio' , data=self.ckio )
             #group.create_dataset('sigma', data=self.sigma)
         
@@ -223,10 +223,8 @@ class gfunction_calc:
     #--------------------------------------------------------------------------
     def calc_electron_density_from_gkio(self,p,b,mu):
         self.set_gkio(p,b,mu)
-        gio  = sum(self.gkio,axis=1)/p.nk
-        result, _, _, _ = sc.linalg.lstsq(b.fermi_Uln, gio, lapack_driver='gelsy')
-        
-        n = 1 + real(dot(b.fermi_Ulx[0],result))
+        gio = sum(self.gkio,axis=1)/p.nk
+        n   = 1 + real(dot(b.fermi_iw_to_tau_0, gio))
         return n
 
 
@@ -242,10 +240,9 @@ class gfunction_calc:
     
     ### Set G(k, iw_n) --------------------------------------------------------
     def set_gkio(self, p, b, mu):
-
         self.gkio = 1/(self.io_ - (self.ek_ - mu) - self.sigma)
-        #self.gkio = ones((len(b.fm), p.nk)) / (self.io_ - (self.ek_ - mu*ones((len(b.fm), p.nk))) - self.sigma)
-        
+ 
+       
     ### Set G(r, tau) ---------------------------------------------------------
     def set_grit(self, p, b):
         if not hasattr(self, 'gkio'): exit("Error_set_grit")
@@ -253,11 +250,10 @@ class gfunction_calc:
         
         fft_object = pyfftw.builders.fftn(grit, axes=(1,2,3))
         grit = fft_object()
-
         grit = grit.reshape(len(b.fm),p.nk)
-        result, _, _, _  = sc.linalg.lstsq(b.fermi_Uln, grit, lapack_driver='gelsy')
-        self.grit_b = dot(b.fermi_Ulx_boson, result)
-        self.grit_f = dot(b.fermi_Ulx, result)
+ 
+        self.grit_b = dot(b.fermi_iw_to_tau_boson, grit)
+        self.grit_f = dot(b.fermi_iw_to_tau,       grit)
 
 
 
@@ -266,8 +262,7 @@ class gfunction_calc:
         if not hasattr(self, 'grit_b'): exit("Error_set_ckit")
         ckio = self.grit_b*self.grit_b[::-1,:]
 
-        result, _, _, _  = sc.linalg.lstsq(b.bose_Ulx, ckio, lapack_driver='gelsy')
-        ckio = dot(b.bose_Uln, result)
+        ckio = dot(b.bose_tau_to_iw, ckio)
         ckio = ckio.reshape(len(b.bm),p.nk1,p.nk2,p.nk3)
 
         fft_object = pyfftw.builders.ifftn(ckio, axes=(1,2,3))
@@ -277,10 +272,10 @@ class gfunction_calc:
 
 
     ### V(r, tau) -------------------------------------------------------------
-    def set_V(self,p,b):
-        #E = ones((len(b.bm),p.nk))
+    def set_V(self,p,b):       
         chi_spin   = self.ckio / (1 - p.u0*self.ckio)
         chi_charge = self.ckio / (1 + p.u0*self.ckio)
+
         V = 3./2.*p.u0*p.u0*chi_spin + 1./2.*p.u0*p.u0*chi_charge - p.u0*p.u0*self.ckio
         V = V.reshape(len(b.bm),p.nk1,p.nk2,p.nk3)
         self.V_ = V
@@ -288,17 +283,15 @@ class gfunction_calc:
         fft_object = pyfftw.builders.fftn(V, axes=(1,2,3))
         V = fft_object().reshape(len(b.bm),p.nk)    
         
-        result, _, _, _ = sc.linalg.lstsq(b.bose_Uln, V, lapack_driver='gelsy')
-        self.V = dot(b.bose_Ulx_fermi, result)   
-        
+        self.V = dot(b.bose_iw_to_tau_fermi, V)  
+        ### No constant term - it is absorbed into mu
         
         
     ### Sigma(k, iw_n) --------------------------------------------------------
     def set_sigma(self,p,b):
         sigma = self.V * self.grit_f
         
-        result, _, _, _ = sc.linalg.lstsq(b.fermi_Ulx, sigma, lapack_driver='gelsy')
-        sigma = dot(b.fermi_Uln, result)
+        sigma = dot(b.fermi_tau_to_iw, sigma)
         sigma = sigma.reshape(len(b.fm),p.nk1,p.nk2,p.nk3)
         
         fft_object = pyfftw.builders.ifftn(sigma, axes=(1,2,3))
@@ -338,12 +331,10 @@ class gfunction_load:
         fft_object = pyfftw.builders.fftn(grit, axes=(1,2,3))
         grit = fft_object()
         grit = grit.reshape(len(b.fm),p.nk)
-        result, _, _, _  = sc.linalg.lstsq(b.fermi_Uln, grit, lapack_driver='gelsy')
-        self.grit_b = dot(b.fermi_Ulx_boson, result)
+        self.grit_b = dot(b.fermi_iw_to_tau_boson, grit)
         
         ckio = self.grit_b*self.grit_b[::-1,:]
-        result, _, _, _  = sc.linalg.lstsq(b.bose_Ulx, ckio, lapack_driver='gelsy')
-        ckio = dot(b.bose_Uln, result)
+        ckio = dot(b.bose_tau_to_iw, ckio)
         ckio = ckio.reshape(len(b.bm),p.nk1,p.nk2,p.nk3)
         fft_object = pyfftw.builders.ifftn(ckio, axes=(1,2,3))
         ckio = fft_object()/p.nk
