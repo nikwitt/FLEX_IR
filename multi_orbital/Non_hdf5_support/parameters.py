@@ -22,24 +22,14 @@ class parameters:
         self.n_fill  = n
         self.g_sfc_tol = 1e-4
         self.DOS_n   = 150
-        
-        ### Model parameters
-        self.t1      = 0.45
-        self.t2      = 0.05
-        self.t3      = 1
-        self.t4      = 0.2
-        self.t5      = -0.15
-        self.t6      = -0.05
-        self.t7      = 0.12
-        self.t8      = 0.12
-        self.t9      = -0.45
-        self.cry_Delta = 0.4
-        
-        self.u0, self.JU_ratio, self.u0_prime, self.J, self.J_prime = parameters.Uval_set(6, JU_ratio)
-        
+    
         self.nspin   = 1
         self.norb    = 3
-        self.nwan    = self.nspin * self.norb #spin * orbital
+        self.nwan    = self.nspin * self.norb #spin * orbital    
+    
+        ### Interaction
+        self.u0, self.JU_ratio, self.u0_prime, self.J, self.J_prime =\
+            parameters.Uval_set(6, JU_ratio)
 
         ### Setting up k-mesh
         self.nk = self.nk1 *self.nk2 * self.nk3
@@ -47,14 +37,6 @@ class parameters:
         k1, k2, k3 = meshgrid(arange(self.nk1)*self.dk1, arange(self.nk2)*self.dk2, arange(self.nk3)*self.dk3)
         #k1, k2, k3 = meshgrid(arange(-self.nk1/2,self.nk1/2)*self.dk1, arange(-self.nk2/2,self.nk2/2)*self.dk2, arange(-self.nk3/2,self.nk3/2)*self.dk3)
         self.k1, self.k2, self.k3 = k1.flatten(), k2.flatten(), k3.flatten()
-        
-        #1 = xy, 2 = yz, 3 = zx
-        self.ka = tensordot( self.k1,            mat3(11,13,31),axes=0)\
-                 +tensordot( self.k2,            mat3(22,12,21),axes=0)\
-                 -tensordot((self.k1 + self.k2), mat3(33,32,23),axes=0)
-        self.kb = tensordot( self.k1,            mat3(33,32,23),axes=0)\
-                 +tensordot( self.k2,            mat3(11,13,31),axes=0)\
-                 -tensordot((self.k1 + self.k2), mat3(22,12,21),axes=0)
 
         ### SC calculation options
         self.SC_type = 'f1' #s s_ext px py d f1 f2

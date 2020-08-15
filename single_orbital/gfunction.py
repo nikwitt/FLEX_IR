@@ -170,7 +170,7 @@ class gfunction_calc:
             #group.create_dataset('sigma', data=self.sigma)
         
         
-        print("Done. Move to SC calculation.", file=open(p.Logstr,'a'))
+        print("Done! -> Move to SC calculation.", file=open(p.Logstr,'a'))
             
             
     ##############
@@ -304,10 +304,6 @@ class gfunction_calc:
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
        
-        
-        
-        
-        
 ##############
 # Load Greens function if already calculated
 ##############       
@@ -339,26 +335,3 @@ class gfunction_load:
         fft_object = pyfftw.builders.ifftn(ckio, axes=(1,2,3))
         ckio = fft_object()/p.nk
         self.ckio = ckio.reshape(len(b.bm),p.nk)
-        
-   
-                    
-    def func_load(p, savestr):
-        '''
-        Function to save total x = (tau,r) or x = (iwn,k) dependence of calculated functions
-        Expects function in shape (tau/iwn,k_1,k_2,k_3)
-        '''
-             
-        quant = []
-            
-        file = open(p.loadpath + savestr,"r")
-            
-        lines = file.readlines()
-        for line in lines:
-            if line != '\n':
-                tmp = line.split()
-                quant_re = float(tmp[3])
-                quant_im = float(tmp[4])
-                quant.append(quant_re + 1j*quant_im)
-        file.close()
-            
-        return array(quant)

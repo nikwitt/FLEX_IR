@@ -12,27 +12,32 @@ class parameters:
     """
     def __init__(self,T, n, tpr, round_it, T_load = 0.1, tpr_load = 0.0):        
         ### Calculation parameters
-        #self.mode = 'FLEX'
+        # General settings
         self.mode = 'FLEX'
         self.mix  = 0.2 # Value of how much of the new G is to be used!
         self.round_it = round_it
         
+        # SC calculation options
+        self.SC_type = 'd' #'s' or 'p' or 'd'
+        
+        # Cutoffs/accuracy
+        self.IR_tol     = 1e-15
+        self.g_sfc_tol  = 1e-5
+        self.SC_sfc_tol = 1e-4
+        
+        # Physical quantities
         self.nk1, self.nk2, self.nk3 = 64, 64, 1
         self.T       = T
         self.beta    = 1/self.T
         self.Lambda  = 10**4
         self.n_fill  = n
-        self.g_sfc_tol = 1e-5
-        self.DOS_n = 150
-        
-        ### Model parameters
-        self.t       = 1
-        self.t_prime = tpr*self.t
-        self.u0      = 4*np.abs(self.t)
         self.nspin   = 1
-        self.norb    = 1
-        
+        self.norb    = 1        
         self.nwan    = self.nspin * self.norb #spin * orbital
+        
+        # Interaction (for t=1)
+        self.u0      = 4
+
 
         ### Setting up k-mesh
         self.nk = self.nk1 *self.nk2 * self.nk3
@@ -42,13 +47,14 @@ class parameters:
                                  np.arange(self.nk3)*self.dk3)
         self.k1, self.k2, self.k3 = k1.flatten(), k2.flatten(), k3.flatten()
 
-        ### One-orbital energy dispersion -> later excluded in Hamiltionian.py
+
+        ### Energy dispersion (mutli_orb -> hamiltonian.py)
+        self.t       = 1
+        self.t_prime = tpr*self.t
+        
         self.ek  = 2*self.t * (np.cos(2*np.pi*self.k1) + np.cos(2*np.pi*self.k2)) \
             + 4*self.t_prime * np.cos(2*np.pi*self.k1) * np.cos(2*np.pi*self.k2)
-        
-        ### SC calculation options
-        self.SC_type = 'd' #'s' or 'p' or 'd'
-        self.SC_sfc_tol = 1e-4
+
         
         ### Setting Log options
         Log_name = 'Log_n_{}'.format(self.n_fill)
