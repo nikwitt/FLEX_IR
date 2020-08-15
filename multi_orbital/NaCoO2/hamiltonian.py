@@ -26,35 +26,57 @@ class hamiltonian:
         """
         Here the systems Hamiltonian matrix (in orbital basis) has to be set up.
         """
+        
+        ### k-vectors in orbital space
+        #dimension: 1 = xy, 2 = yz, 3 = zx
+        ka = tensordot( p.k1,         mat3(11,13,31),axes=0)\
+            +tensordot( p.k2,         mat3(22,12,21),axes=0)\
+            -tensordot((p.k1 + p.k2), mat3(33,32,23),axes=0)
+        kb = tensordot( p.k1,         mat3(33,32,23),axes=0)\
+            +tensordot( p.k2,         mat3(11,13,31),axes=0)\
+            -tensordot((p.k1 + p.k2), mat3(22,12,21),axes=0)
+            
+        ### Model parameters
+        t1 = 0.45
+        t2 = 0.05
+        t3 = 1
+        t4 = 0.2
+        t5 = -0.15
+        t6 = -0.05
+        t7 = 0.12
+        t8 = 0.12
+        t9 = -0.45
+        cry_Delta = 0.4
+        
         ### H_kin without chemical potential
-        Htb11 = 2*p.t1* cos(2*pi*p.ka[:,0,0])\
-              + 2*p.t2*(cos(2*pi*p.kb[:,0,0]) + cos(2*pi*(p.ka[:,0,0] + p.kb[:,0,0])) )\
-              + 2*p.t4*(cos(2*pi*(2*p.ka[:,0,0] + p.kb[:,0,0])) + cos(2*pi*(p.ka[:,0,0] - p.kb[:,0,0])) )\
-              + 2*p.t5* cos(2*2*pi*p.ka[:,0,0])
-        Htb22 = 2*p.t1* cos(2*pi*p.ka[:,1,1])\
-              + 2*p.t2*(cos(2*pi*p.kb[:,1,1]) + cos(2*pi*(p.ka[:,1,1] + p.kb[:,1,1])) )\
-              + 2*p.t4*(cos(2*pi*(2*p.ka[:,1,1] + p.kb[:,1,1])) + cos(2*pi*(p.ka[:,1,1] - p.kb[:,1,1])) )\
-              + 2*p.t5* cos(2*2*pi*p.ka[:,1,1])             
-        Htb33 = 2*p.t1* cos(2*pi*p.ka[:,2,2])\
-              + 2*p.t2*(cos(2*pi*p.kb[:,2,2]) + cos(2*pi*(p.ka[:,2,2] + p.kb[:,2,2])) )\
-              + 2*p.t4*(cos(2*pi*(2*p.ka[:,2,2] + p.kb[:,2,2])) + cos(2*pi*(p.ka[:,2,2] - p.kb[:,2,2])) )\
-              + 2*p.t5* cos(2*2*pi*p.ka[:,2,2])           
+        Htb11 = 2*t1* cos(2*pi*ka[:,0,0])\
+              + 2*t2*(cos(2*pi*kb[:,0,0]) + cos(2*pi*(ka[:,0,0] + kb[:,0,0])) )\
+              + 2*t4*(cos(2*pi*(2*ka[:,0,0] + kb[:,0,0])) + cos(2*pi*(ka[:,0,0] - kb[:,0,0])) )\
+              + 2*t5* cos(2*2*pi*ka[:,0,0])
+        Htb22 = 2*t1* cos(2*pi*ka[:,1,1])\
+              + 2*t2*(cos(2*pi*kb[:,1,1]) + cos(2*pi*(ka[:,1,1] + kb[:,1,1])) )\
+              + 2*t4*(cos(2*pi*(2*ka[:,1,1] + kb[:,1,1])) + cos(2*pi*(ka[:,1,1] - kb[:,1,1])) )\
+              + 2*t5* cos(2*2*pi*ka[:,1,1])             
+        Htb33 = 2*t1* cos(2*pi*ka[:,2,2])\
+              + 2*t2*(cos(2*pi*kb[:,2,2]) + cos(2*pi*(ka[:,2,2] + kb[:,2,2])) )\
+              + 2*t4*(cos(2*pi*(2*ka[:,2,2] + kb[:,2,2])) + cos(2*pi*(ka[:,2,2] - kb[:,2,2])) )\
+              + 2*t5* cos(2*2*pi*ka[:,2,2])           
               
-        Htb12 = 2*p.t3*cos(2*pi*p.kb[:,0,1])\
-              + 2*p.t6*cos(2*2*pi*p.kb[:,0,1])\
-              + 2*p.t7*cos(2*pi*(  p.ka[:,0,1] + 2*p.kb[:,0,1]))\
-              + 2*p.t8*cos(2*pi*(  p.ka[:,0,1] -   p.kb[:,0,1]))\
-              + 2*p.t9*cos(2*pi*(2*p.ka[:,0,1] +   p.kb[:,0,1]))        
-        Htb13 = 2*p.t3*cos(2*pi*p.kb[:,0,2])\
-              + 2*p.t6*cos(2*2*pi*p.kb[:,0,2])\
-              + 2*p.t7*cos(2*pi*(  p.ka[:,0,2] + 2*p.kb[:,0,2]))\
-              + 2*p.t8*cos(2*pi*(  p.ka[:,0,2] -   p.kb[:,0,2]))\
-              + 2*p.t9*cos(2*pi*(2*p.ka[:,0,2] +   p.kb[:,0,2]))
-        Htb23 = 2*p.t3*cos(2*pi*p.kb[:,1,2])\
-              + 2*p.t6*cos(2*2*pi*p.kb[:,1,2])\
-              + 2*p.t7*cos(2*pi*(  p.ka[:,1,2] + 2*p.kb[:,1,2]))\
-              + 2*p.t8*cos(2*pi*(  p.ka[:,1,2] -   p.kb[:,1,2]))\
-              + 2*p.t9*cos(2*pi*(2*p.ka[:,1,2] +   p.kb[:,1,2]))
+        Htb12 = 2*t3*cos(2*pi*kb[:,0,1])\
+              + 2*t6*cos(2*2*pi*kb[:,0,1])\
+              + 2*t7*cos(2*pi*(  ka[:,0,1] + 2*kb[:,0,1]))\
+              + 2*t8*cos(2*pi*(  ka[:,0,1] -   kb[:,0,1]))\
+              + 2*t9*cos(2*pi*(2*ka[:,0,1] +   kb[:,0,1]))        
+        Htb13 = 2*t3*cos(2*pi*kb[:,0,2])\
+              + 2*t6*cos(2*2*pi*kb[:,0,2])\
+              + 2*t7*cos(2*pi*(  ka[:,0,2] + 2*kb[:,0,2]))\
+              + 2*t8*cos(2*pi*(  ka[:,0,2] -   kb[:,0,2]))\
+              + 2*t9*cos(2*pi*(2*ka[:,0,2] +   kb[:,0,2]))
+        Htb23 = 2*t3*cos(2*pi*kb[:,1,2])\
+              + 2*t6*cos(2*2*pi*kb[:,1,2])\
+              + 2*t7*cos(2*pi*(  ka[:,1,2] + 2*kb[:,1,2]))\
+              + 2*t8*cos(2*pi*(  ka[:,1,2] -   kb[:,1,2]))\
+              + 2*t9*cos(2*pi*(2*ka[:,1,2] +   kb[:,1,2]))
               
         self.htb = tensordot(Htb11, mat3(11),    axes=0)\
                   +tensordot(Htb22, mat3(22),    axes=0)\
@@ -63,10 +85,7 @@ class hamiltonian:
                   +tensordot(Htb13, mat3(13,31), axes=0)\
                   +tensordot(Htb23, mat3(23,32), axes=0)
                   
-        self.hcry = p.cry_Delta/3*(eye(3) - ones((3,3)))
-            
-         
-        # If t > 0 !
+        self.hcry = cry_Delta/3*(eye(3) - ones((3,3)))
         self.hk = self.htb + self.hcry
         
         #If 2 spin system (without SOC!)
@@ -115,7 +134,8 @@ class hamiltonian:
         Determining inital mu from bisection method of sum(fermi_k,n) (so for all orbitals!)
         """
        
-        # Set electron number for bisection difference
+        ### Set electron number for bisection difference
+        # n_0 is per orbital
         n_0 = p.n_fill        
         n = self.calc_electron_density
         f = lambda mu : 2/p.nspin*n(p,ek,mu) - n_0

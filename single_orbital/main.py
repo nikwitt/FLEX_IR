@@ -98,7 +98,7 @@ for n_it in range(len(n_vec)):
 
       ### Load irbasis --------------------------------------------------------            
       t_bload = time.process_time()
-      b = ir_load(p.Lambda, p.beta)
+      b = ir_load(p.Lambda, p.beta, p.IR_tol)
       print("Elapsed time - basis load (tot | module): " \
             + str(time.process_time() - start) + " | " \
             + str(time.process_time() - t_bload), file=open(p.Logstr,'a')) 
