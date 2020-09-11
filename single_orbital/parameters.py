@@ -74,9 +74,16 @@ class parameters:
         self.savepath = self.sp_dir + self.sp_name_save
         self.loadpath = self.sp_dir + self.sp_name_load
         
+        #eigenvalue strings
+        self.BSE_EV_path = "BSE_kernel_EV/max_spin_charge_ev_n_{}_tpr_{}_U_{}.dat".format(self.n_fill,self.t_prime,self.u0)
+        self.SC_EV_path  = "SC_EV/{}w_lam_n_{}_tpr_{}_U_{}.dat".format(self.SC_type,self.n_fill,self.t_prime,self.u0)
+        self.SC_EV_path_neg = "SC_EV/{}w_lam_n_{}_tpr_{}_U_{}.dat".format(self.SC_type,self.n_fill,self.t_prime,str(self.u0)+"_first_negative")
+
+        
         #generate hdf5 file if it does not exist
-        if not os.path.exists(self.sp_dir):
-            os.makedirs(self.sp_dir)
+        os.makedirs("SC_EV",         exist_ok=True)  
+        os.makedirs("BSE_kernel_EV", exist_ok=True)
+        os.makedirs(self.sp_dir,     exist_ok=True)
         
         if not os.path.exists(self.savepath):
             with h5py.File(self.savepath,'w') as file: 

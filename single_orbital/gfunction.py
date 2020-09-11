@@ -149,10 +149,11 @@ class gfunction_calc:
             print("Maximal BSE kernel value not at iw=0.", file=open(p.Logerrstr,'a'))
         
         # Save file
-        file = open(('BSE_kernel_n_T_data/largest_BSEK_for_' +\
-                    'n_{}_tpr_{}_U_{}.dat').format(p.n_fill,p.t_prime,p.u0),"a")
-        file.write('{} {} {} {} {}\n'.format(p.T, max_index[0], p.k1[max_index[1]], p.k2[max_index[1]], BSE_max_kernel))
-        
+        with open(p.BSE_EV_path,"a") as file:
+            file.write('{} {} {} {} {}\n'.format(p.T, max_index[0],\
+                                                 p.k1[max_index[1]],\
+                                                 p.k2[max_index[1]],\
+                                                 BSE_max_kernel))        
         print("*** Maximal BSE kernel value U*chi = " + str(BSE_max_kernel),\
               file=open(p.Logstr,'a'))
         

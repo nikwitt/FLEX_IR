@@ -26,7 +26,7 @@ import time
 
 ##### Please input in order: 
 # MKL_NUM_THREADS | T | T_load | JUratio | JU_ratio_load | round_it
-n_fill = (7-3.43)/2
+n_fill = 1.785
 T      = float(sys.argv[2])
 T_load = float(sys.argv[3])
 JU_ratio = float(sys.argv[4])
@@ -35,6 +35,8 @@ JU_ratio_load = float(sys.argv[5])
 round_it = int(sys.argv[6])
 
 print(T, T_load, JU_ratio, JU_ratio_load, round_it)
+
+
 
 ### Initiate parameters -------------------------------------------------------
 start = time.process_time()

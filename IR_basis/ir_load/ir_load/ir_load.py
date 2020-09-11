@@ -11,11 +11,13 @@ class ir_load:
         Function for loading irbasis on precomputed grid points.
         Takes 'Lambda', 'beta' and 'delta' as input,
         i.e. irbasis parameter, inverse temperature and basis cutoff error.
-        
-        Ver. 1.1: changed storage of sampling points,
-                  added support of different basis sizes.
-        Ver. 1.0: only U vectors on imaginary time and Matsubara frequencies
-        are supported.
+
+        Ver. 1.2: Introduced transformation matrices iw <-> tau.
+                  Added tau=0 values explicitly for filling evaluation.
+	Ver. 1.1: Changed storage of sampling points.
+                  Added support of different basis sizes
+        Ver. 1.0: Only U vectors on imaginary time and Matsubara frequencies
+                  are supported.
         """
         
         ### Load irbasis objects from 'irbasis.py' for both statistics

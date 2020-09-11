@@ -18,39 +18,8 @@ import datetime
 import time
 import h5py
 
-# =============================================================================
-# def IR_basis_coeff_kpt_plot(p, quant_l, quant_name='G'):
-#     plt.figure(figsize = (8,6))
-#     
-#     quant_l = abs(quant_l)
-#     plt.semilogy(arange(quant_l.shape[0]), quant_l[:,0], label='$k=(0,0)$')
-#     plt.semilogy(arange(quant_l.shape[0]), quant_l.reshape(-1,p.nk1,p.nk2)[:,0,p.nk2//2], label='$k=(0,\\pi)$')
-#     plt.semilogy(arange(quant_l.shape[0]), quant_l.reshape(-1,p.nk1,p.nk2)[:,p.nk1//2,0], label='$k=(\\pi,0)$')
-#     plt.semilogy(arange(quant_l.shape[0]), quant_l.reshape(-1,p.nk1,p.nk2)[:,p.nk1//2,p.nk2//2], label='$k=(\\pi,\\pi)$')
-# 
-#     plt.legend()
-#     plt.xlabel("l")
-#     if quant_name in {"G","F"}:
-#         plt.ylabel(("$|{}_l(k)|$").format(quant_name))
-#     elif quant_name in {"G_0", "F_init"}:
-#         plt.ylabel(("$|{}^0_l(k)|$").format(quant_name[0]))
-#     elif quant_name == "G_sqr":
-#         plt.ylabel("$|G_l(k)|^2$")
-#     elif quant_name == "G_init_sqr":
-#         plt.ylabel("$|G^0_l(k)|^2$")
-#     plt.title(("{}: T = {} | n = {} | t' = {} | U = {}").format(p.mode, str(p.T), str(p.n_fill), str(p.t_prime), str(p.u0)))
-#             
-#     plt.savefig(("pics/{}_{}_l_kpoints_T_{}_n_{}_tpr_{}_U_{}.png").format(p.mode, quant_name, str(p.T), str(p.n_fill), str(p.t_prime), str(p.u0)))
-#         
-# =============================================================================
 
-        
-if not os.path.exists('lam_n_T_data'):
-    os.makedirs('lam_n_T_data')
-    
-if not os.path.exists('BSE_kernel_n_T_data'):
-    os.makedirs('BSE_kernel_n_T_data')
-
+### Set parameters for calculation
 n_vec   = array([0.7,0.75,0.8,0.82,0.84,0.85,0.86,0.88,0.9,0.95])
 #n_vec   = array([0.3,0.4, 0.5, 0.6])
 #T_vec   = array([0.05])
@@ -78,9 +47,8 @@ for n_it in range(len(n_vec)):
             , file=open(p.Logstr,'a'))
       print(datetime.datetime.now().strftime('%d. %B %Y %I:%M%p')\
             , file=open(p.Logstr,'a'))
-      print("Now starting: n = " + str(p.n_fill) + ", t' = " + str(p.t_prime)\
-            + ", T = " + str(p.T) + ", U = " + str(p.u0) + "\n"\
-            , file=open(p.Logstr,'a'))
+      print("Parameter set: n = {}, T = {}, U = {}, t_prime = {}\n".format\
+           (p.n_fill, p.T, p.u0 ,p.t_prime), file=open(p.Logstr,'a'))
       print("Elapsed time - parameter init: " + str(time.process_time() - start)\
             , file=open(p.Logstr,'a')) 
 
@@ -144,16 +112,15 @@ for n_it in range(len(n_vec)):
       print("Elapsed time - Eliashberg calc (tot | module): " \
             + str(time.process_time() - start) + " | " \
             + str(time.process_time() - t_eliashberg), file=open(p.Logstr,'a'))
-      print("Done: n = " + str(p.n_fill) + " | T/t = " + str(p.T) + \
-            " (" + str(round(p.T*1.16*10**4,2)) + " K) | tpr = " + str(p.t_prime)\
-            + " | |lambda| = " + str(abs(el.result)), file=open(p.Logstr,'a'))
+      print("Done: n = {} | T/t = {} ({} K) | t_prime = {} | abs(lambda) = {}".format\
+            (p.n_fill, p.T, round(p.T*1.16*10**4,2), p.t_prime, abs(el.result))\
+            , file=open(p.Logstr,'a'))
             
       
       ### Save resulting lambda value -----------------------------------------
-      file = open("lam_n_T_data/" + p.SC_type + "w_lam_for_n_" + str(p.n_fill)\
-                  + "_tpr_" + str(p.t_prime) + "_U_" + str(p.u0) + ".dat","a")
-      file.write(str(p.T) + " " + str(real(el.result)) + " " + str(imag(el.result)) + "\n")
-      file.close()
+      with open(p.SC_EV_path, 'a') as file:
+          file.write("{} {} {}\n".format(p.T, real(el.result), imag(el.result)))
+          
       print("##################################################"\
             , file=open(p.Logstr,'a'))
       print("\n",file=open(p.Logstr,'a'))

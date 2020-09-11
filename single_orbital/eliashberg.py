@@ -16,11 +16,8 @@ class eliashberg:
             print('Not s-wave type but found negative lambda. Another cycle will be performed.', file=open(p.Logstr,'a'))
             print(p.err_str_begin + "lambda < 0 : => new round!",\
                   file=open(p.Logerrstr,'a'))
-            
-            file = open("lam_n_T_data/" + p.SC_type + "w_lam_for_n_" + str(p.n_fill)\
-                  + "_tpr_" + str(p.t_prime) + "_U_" + str(p.u0) + "_first_negative.dat","a")
-            file.write(str(p.T) + " " + str(real(lam)) + " " + str(imag(lam)) + "\n")
-            file.close()
+            with open(p.SC_EV_path_neg, 'a') as file:
+                file.write("{} {} {}\n".format(p.T, real(lam), imag(lam)))
             
             lam_n = self.scf(g, p, b, lam)
             lam = lam_n + lam           

@@ -75,14 +75,9 @@ class parameters:
         self.SC_EV_path_neg = "SC_EV/{}w_lam_n_{}_JUratio_{}_U_{}.dat".format(self.SC_type,self.n_fill,self.JU_ratio,str(self.u0)+"_first_negative")
 
         ### Generate directories/hdf5 file if not exist
-        if not os.path.exists("BSE_kernel_EV"):
-            os.makedirs("BSE_kernel_EV")
-            
-        if not os.path.exists("SC_EV"):
-            os.makedirs("SC_EV")
-            
-        if not os.path.exists(self.sp_dir):
-            os.makedirs(self.sp_dir)
+        os.makedirs("SC_EV",         exist_ok=True)  
+        os.makedirs("BSE_kernel_EV", exist_ok=True)
+        os.makedirs(self.sp_dir,     exist_ok=True)
         
         if not os.path.exists(self.savepath):
             with h5py.File(self.savepath,'w') as file: 
