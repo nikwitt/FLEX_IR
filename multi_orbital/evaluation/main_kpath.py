@@ -28,14 +28,9 @@ import matplotlib.pyplot as plt
 import datetime
 import time
 
-
-#### For converison now
-import h5py
-sp_name = "NaxCoO2_calculation_data_T_{}_U_{}_JUratio_{}_n_{}.h5"
-
 ##### Please input in order: 
 # MKL_NUM_THREADS | T | T_load | JUratio | JU_ratio_load | round_it
-n_fill = (7-3.43)/2
+n_fill = 5.7/3
 T      = float(sys.argv[2])
 T_load = float(sys.argv[3])
 JU_ratio = float(sys.argv[4])
@@ -71,13 +66,14 @@ print("Elapsed time - hamiltonian set (tot | module): " \
     
 ### Load irbasis --------------------------------------------------------            
 t_bload = time.process_time()
-b = ir_load(p.Lambda, p.beta)
+b = ir_load(p.Lambda, p.beta, p.IR_tol)
 print("Elapsed time - basis load (tot | module): " \
       + str(time.process_time() - start) + " | " \
       + str(time.process_time() - t_bload), file=open(p.Logstr,'a')) 
 
 
 ### Calculate full Greens function---------------------------------------
+t_gcal = time.process_time()
 print("Load gkio data.", file=open(p.Logstr,'a')) 
 g = gfunction_load(p, b)
 print("Elapsed time - data load (tot | module): " \
