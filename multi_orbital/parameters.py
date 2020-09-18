@@ -55,20 +55,16 @@ class parameters:
         self.Logstr = Log_name + ".dat"
         self.Logerrstr = Log_name + "_err.dat"
         self.err_str_begin = "System T = {} | n = {} | U = {} | J/U = {} : ".format(self.T,self.n_fill,self.u0,self.JU_ratio)
-            
-            
+           
+
         ### Setting saving options
         self.sp_dir    = "Odata_JU_{}/"
         self.data_name = "NaxCoO2_calculation_data_T_{}_U_{}_JUratio_{}_n_{}.h5"
         self.calc_name = self.sp_dir + self.data_name
 
         #formatting middle string
-        self.sp_name_save = self.calc_name.format(self.JU_ratio,self.T,self.u0,self.JU_ratio,self.n_fill)
-        self.sp_name_load = self.calc_name.format(JU_ratio_load,T_load,self.u0,JU_ratio_load,self.n_fill)
-        
-        #generating full string
-        self.savepath = self.sp_dir + self.sp_name_save
-        self.loadpath = self.sp_dir + self.sp_name_load
+        self.savepath = self.calc_name.format(self.JU_ratio,self.T,self.u0,self.JU_ratio,self.n_fill)
+        self.loadpath = self.calc_name.format(JU_ratio_load,T_load,self.u0,JU_ratio_load,self.n_fill)
         
         #eigenvalue strings
         self.BSE_EV_path = "BSE_kernel_EV/max_spin_charge_ev_n_{}_JUratio_{}_U_{}.dat".format(self.n_fill,self.JU_ratio,self.u0)
