@@ -65,9 +65,9 @@ savepath = 'C:\\Users\\nikla\\Documents\\Master\\Master_thesis\\pictures\\'
 
 #### Calculation
 # parameters
-w_max  = 1
+w_max  = 10
 beta   = 100
-Lambda = 10**2
+Lambda = 10**3
 b = ir_load(Lambda, beta)
 lmax = b.fermi_basis.dim()-1
 s_l = sqrt(beta*w_max/2)*b.fermi_basis.sl()
@@ -184,4 +184,4 @@ f_ax4.legend()
 
 #plt.figlegend(bbox_to_anchor=(0.49, 1.15), loc='upper center', ncol=len(Lambda))
 
-plt.savefig(savepath + 'IR_basis_sampling_isolator.pdf', bbox_inches='tight')
+#plt.savefig(savepath + 'IR_basis_sampling_isolator.pdf', bbox_inches='tight')

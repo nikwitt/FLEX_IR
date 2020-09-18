@@ -74,7 +74,7 @@ class parameters:
         ### Generate directories/hdf5 file if not exist
         os.makedirs("SC_EV",         exist_ok=True)  
         os.makedirs("BSE_kernel_EV", exist_ok=True)
-        os.makedirs(self.sp_dir,     exist_ok=True)
+        os.makedirs(self.sp_dir.format(self.JU_ratio), exist_ok=True)
         
         if not os.path.exists(self.savepath):
             with h5py.File(self.savepath,'w') as file: 
