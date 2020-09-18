@@ -28,7 +28,7 @@ class kpath_extract:
 #                             (trace(el.delta[b.f_iwn_zero_ind],0,1,2)/3).reshape(p.nk1,p.nk2,p.nk3))
 # =============================================================================
              
-        with h5py.File(savepath,'a') as file:
+        with h5py.File(p.savepath,'a') as file:
             group = file.require_group('kpath_KGMK')
     
             group.require_dataset('kvalue',data=k_HSP,shape=k_HSP.shape,dtype=k_HSP.dtype)
