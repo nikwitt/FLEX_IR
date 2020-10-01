@@ -10,17 +10,46 @@ class kpath_extract:
         k_HSP, gkio_HSP = kpath_extract.kpath_extractor(p,\
                             (trace(g.gkio[b.f_iwn_zero_ind],0,1,2)/3).reshape(p.nk1,p.nk2,p.nk3))
 
+        ### max eigenvalue of irr. susceptibility
+        ckio = g.ckio[b.b_iwn_zero_ind].reshape(p.nk1,p.nk2,p.nk3,p.nwan**2,p.nwan**2)
+        ckio_eig, _ = linalg.eigh(ckio)
+        _, ckio_HSP = kpath_extract.kpath_extractor(p, (ckio_eig[:,:,:,-1]))
+        
+        ### trace of irr. susceptibility
+        ckio = ckio.reshape(p.nk1,p.nk2,p.nk3,p.nwan,p.nwan,p.nwan,p.nwan)
+        ckio_trace = zeros((p.nk1,p.nk2,p.nk3),complex)
+        for it in range(p.nwan):
+            for jt in range(p.nwan):
+                ckio_trace += ckio[:,:,:,it,it,jt,jt]
+        _, ckio_trace_HSP = kpath_extract.kpath_extractor(p, (ckio_trace/p.nwan**2))       
+
         ### max eigenvalue spin susceptibility        
         chi_spin   = g.ckio@linalg.inv(g.E_int - g.ckio@h.S_mat)
         chi_s = chi_spin[b.b_iwn_zero_ind].reshape(p.nk1,p.nk2,p.nk3,p.nwan**2,p.nwan**2)
         chi_s_eig, _ = linalg.eigh(chi_s)
         _, chi_s_HSP = kpath_extract.kpath_extractor(p, (chi_s_eig[:,:,:,-1]))
         
+        ### trace of spin susceptibility
+        chi_s = chi_s.reshape(p.nk1,p.nk2,p.nk3,p.nwan,p.nwan,p.nwan,p.nwan)
+        chi_s_trace = zeros((p.nk1,p.nk2,p.nk3),complex)
+        for it in range(p.nwan):
+            for jt in range(p.nwan):
+                chi_s_trace += chi_s[:,:,:,it,it,jt,jt]
+        _, chi_s_trace_HSP = kpath_extract.kpath_extractor(p, (chi_s_trace/p.nwan**2))
+        
         ### max eigenvalue charge susceptibility
         chi_charge = g.ckio@linalg.inv(g.E_int + g.ckio@h.C_mat)
         chi_c = chi_charge[b.b_iwn_zero_ind].reshape(p.nk1,p.nk2,p.nk3,p.nwan**2,p.nwan**2)
         chi_c_eig, _ = linalg.eigh(chi_c)
         _, chi_c_HSP = kpath_extract.kpath_extractor(p, (chi_c_eig[:,:,:,-1]))
+
+        ### trace of charge susceptibility
+        chi_c = chi_c.reshape(p.nk1,p.nk2,p.nk3,p.nwan,p.nwan,p.nwan,p.nwan)
+        chi_c_trace = zeros((p.nk1,p.nk2,p.nk3),complex)
+        for it in range(p.nwan):
+            for jt in range(p.nwan):
+                chi_c_trace += chi_c[:,:,:,it,it,jt,jt]
+        _, chi_c_trace_HSP = kpath_extract.kpath_extractor(p, (chi_c_trace/p.nwan**2))
 
 # =============================================================================
 #         ### gap function
@@ -32,9 +61,15 @@ class kpath_extract:
             group = file.require_group('kpath_KGMK')
     
             group.require_dataset('kvalue',data=k_HSP,shape=k_HSP.shape,dtype=k_HSP.dtype)
+            
+            group.require_dataset('ckio_max_eig',data=ckio_HSP,shape=ckio_HSP.shape,dtype=ckio_HSP.dtype)
             group.require_dataset('chi_spin_max_eig',data=chi_s_HSP,shape=chi_s_HSP.shape,dtype=chi_s_HSP.dtype)
             group.require_dataset('chi_charge_max_eig',data=chi_c_HSP,shape=chi_c_HSP.shape,dtype=chi_c_HSP.dtype)        
+            
             group.require_dataset('gkio_trace',data=gkio_HSP,shape=gkio_HSP.shape,dtype=gkio_HSP.dtype)
+            group.require_dataset('ckio_trace',data=ckio_trace_HSP,shape=ckio_trace_HSP.shape,dtype=ckio_trace_HSP.dtype)
+            group.require_dataset('chi_spin_trace',data=chi_s_trace_HSP,shape=chi_s_trace_HSP.shape,dtype=chi_s_trace_HSP.dtype)
+            group.require_dataset('chi_charge_trace',data=chi_c_trace_HSP,shape=chi_c_trace_HSP.shape,dtype=chi_c_trace_HSP.dtype)
             #group.require_dataset('gap_{}'.format(p.SC_type),data=gap_HSP,shape=gap_HSP.shape,dtype=gap_HSP.dtype)
       
         
