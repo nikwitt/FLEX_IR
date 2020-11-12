@@ -49,8 +49,8 @@ class eliashberg:
         
     ### Set Coulomb interaction V(r, tau_fermi)--------------------------------
     def set_v(self, g, p, b, h):
-        chi_spin   = g.ckio@linalg.inv(g.E_int - h.S_mat@g.ckio)
-        chi_charge = g.ckio@linalg.inv(g.E_int + h.C_mat@g.ckio)
+        chi_spin   = g.ckio@linalg.inv(g.E_int - g.ckio@h.S_mat)
+        chi_charge = g.ckio@linalg.inv(g.E_int + g.ckio@h.C_mat)
         
         # Set V according to parity/SC wave type
         if p.SC_type in {'s', 's_ext', 'd'}: #singulett
