@@ -24,7 +24,7 @@ class kpath_extract:
         _, ckio_trace_HSP = kpath_extract.kpath_extractor(p, (ckio_trace/p.nwan**2))       
 
         ### max eigenvalue spin susceptibility        
-        chi_spin   = g.ckio@linalg.inv(g.E_int - g.ckio@h.S_mat)
+        chi_spin   = linalg.inv(g.E_int - g.ckio@h.S_mat)@g.ckio
         chi_s = chi_spin[b.b_iwn_zero_ind].reshape(p.nk1,p.nk2,p.nk3,p.nwan**2,p.nwan**2)
         chi_s_eig, _ = linalg.eigh(chi_s)
         _, chi_s_HSP = kpath_extract.kpath_extractor(p, (chi_s_eig[:,:,:,-1]))
@@ -38,7 +38,7 @@ class kpath_extract:
         _, chi_s_trace_HSP = kpath_extract.kpath_extractor(p, (chi_s_trace/p.nwan**2))
         
         ### max eigenvalue charge susceptibility
-        chi_charge = g.ckio@linalg.inv(g.E_int + g.ckio@h.C_mat)
+        chi_charge = linalg.inv(g.E_int + g.ckio@h.C_mat)@g.ckio
         chi_c = chi_charge[b.b_iwn_zero_ind].reshape(p.nk1,p.nk2,p.nk3,p.nwan**2,p.nwan**2)
         chi_c_eig, _ = linalg.eigh(chi_c)
         _, chi_c_HSP = kpath_extract.kpath_extractor(p, (chi_c_eig[:,:,:,-1]))

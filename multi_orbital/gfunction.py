@@ -306,8 +306,8 @@ class gfunction_calc:
     ### V(r, tau) -------------------------------------------------------------
     def set_V(self,p,h,b):
         if p.nspin == 1 and p.nwan >= 2:
-            chi_spin   = self.ckio@linalg.inv(self.E_int - self.ckio@h.S_mat)
-            chi_charge = self.ckio@linalg.inv(self.E_int + self.ckio@h.C_mat)
+            chi_spin   = linalg.inv(self.E_int - self.ckio@h.S_mat)@self.ckio
+            chi_charge = linalg.inv(self.E_int + self.ckio@h.C_mat)@self.ckio
             
             V = 3./2.* h.S_mat@(chi_spin   - 1/2*self.ckio)@h.S_mat \
               + 1./2.* h.C_mat@(chi_charge - 1/2*self.ckio)@h.C_mat
