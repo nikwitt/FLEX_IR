@@ -11,7 +11,7 @@ class parameters:
     As no extra file is generated, one should make thorough notes on what 
     parameters are set in each calculation!
     """
-    def __init__(self,T,n,JU_ratio,round_it, T_load = 0.01, JU_ratio_load = 0.0):        
+    def __init__(self, T, n, u0, JU_ratio, round_it, T_load = 0.01, JU_ratio_load = 0.0):        
         ### Calculation parameters
         # General settings
         self.mode = 'FLEX' #'FLEX' 'RPA'
@@ -19,7 +19,7 @@ class parameters:
         self.round_it = round_it
         
         # SC calculation options
-        self.SC_type = 'f1' #s s_ext px py d f1 f2
+        self.SC_type = 'f1' #s s_ext px py dx2-y2 f1 f2
         
         # Cutoffs/accuracy
         self.IR_tol     = 1e-15
@@ -38,7 +38,7 @@ class parameters:
         
         # Interaction
         self.u0, self.JU_ratio, self.u0_prime, self.J, self.J_prime =\
-            parameters.Uval_set(6, JU_ratio)
+            parameters.Uval_set(u0, JU_ratio)
 
 
         ### Setting up k-mesh

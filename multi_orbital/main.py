@@ -29,18 +29,19 @@ import time
 n_fill = 1.785
 T      = float(sys.argv[2])
 T_load = float(sys.argv[3])
-JU_ratio = float(sys.argv[4])
-JU_ratio_load = float(sys.argv[5])
+u0     = float(sys.argv[4])
+JU_ratio = float(sys.argv[5])
+JU_ratio_load = float(sys.argv[6])
 
-round_it = int(sys.argv[6])
+round_it = int(sys.argv[7])
 
-print(T, T_load, JU_ratio, JU_ratio_load, round_it)
+print(n_fill, T, T_load, u0, JU_ratio, JU_ratio_load, round_it)
 
 
 
 ### Initiate parameters -------------------------------------------------------
 start = time.process_time()
-p = parameters(round(T, 5), round(n_fill ,5), round(JU_ratio,5), round_it,\
+p = parameters(round(T, 5), round(n_fill ,5), round(JU_ratio,5), round(u0,5),  round_it,\
                T_load = round(T_load, 5), JU_ratio_load = round(JU_ratio_load, 5))
 print("##################################################"\
       , file=open(p.Logstr,'a'))

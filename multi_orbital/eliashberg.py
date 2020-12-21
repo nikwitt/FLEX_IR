@@ -18,8 +18,8 @@ class eliashberg:
 
         lam = self.scf(g, p, b, h, 0)
 
-        if real(lam) < 0 and p.SC_type != 's':
-            print('Not s-wave type but found negative lambda. Another cycle will be performed.', file=open(p.Logstr,'a'))
+        if real(lam) < 0 or p.SC_type == 'py':
+            print('Another eliashberg cycle will be performed.', file=open(p.Logstr,'a'))
             print(p.err_str_begin + "lambda < 0 : => new round!"\
                , file=open(p.Logerrstr,'a'))
                 
@@ -28,12 +28,6 @@ class eliashberg:
             
             lam_n = self.scf(g, p, b, h, lam)
             lam = lam_n + lam
-        #if p.SC_type in {'px','py'}:
-        #    print('p-wave converged to f1 (probably!). Another cycle will be performed.', file=open(p.Logstr,'a'))
-        #    lam_n = self.scf(g, p, b, h, lam)
-        #    print(p.err_str_begin + "p-wave change: " + str(real(lam)) + " to " + str(real(lam+lam_n))\
-        #       , file=open(p.Logerrstr,'a'))
-        #    lam = lam_n + lam   
         
         self.result = lam
         
@@ -49,20 +43,20 @@ class eliashberg:
         
     ### Set Coulomb interaction V(r, tau_fermi)--------------------------------
     def set_v(self, g, p, b, h):
-        chi_spin   = linalg.inv(g.E_int - g.ckio@h.S_mat)@g.gkio
-        chi_charge = linalg.inv(g.E_int + g.ckio@h.C_mat)@g.gkio
+        chi_spin   = linalg.inv(g.E_int - g.ckio@h.S_mat)@g.ckio
+        chi_charge = linalg.inv(g.E_int + g.ckio@h.C_mat)@g.ckio
         
         # Set V according to parity/SC wave type
-        if p.SC_type in {'s', 's_ext', 'd'}: #singulett
+        if p.SC_type in {'s', 's_ext', 'dx2-y2'}: #singulet
             v =   3./2.* h.S_mat@chi_spin@h.S_mat \
                 - 1./2.* h.C_mat@chi_charge@h.C_mat
-            self.v_DC = (h.C_mat + h.S_mat)/2
-            #self.v_DC = (3*h.S_mat + h.C_mat)/4
+            #self.v_DC = (h.C_mat + h.S_mat)/2
+            self.v_DC = (3*h.S_mat + h.C_mat)/4
         elif p.SC_type in {'px', 'py', 'f1', 'f2'}: #triplet
             v = - 1./2.* h.S_mat@chi_spin@h.S_mat \
                 - 1./2.* h.C_mat@chi_charge@h.C_mat
-            self.v_DC = (h.C_mat - h.S_mat)/2
-            #self.v_DC = (-h.S_mat + h.C_mat)/4
+            #self.v_DC = (h.C_mat - h.S_mat)/2
+            self.v_DC = (-h.S_mat + h.C_mat)/4
 
         v = v.reshape(len(b.bm),p.nk1,p.nk2,p.nk3,p.nwan**4)     
 
@@ -96,7 +90,7 @@ class eliashberg:
         elif p.SC_type == 'py':
             #triplet: sin(2*pi*p.ky)
             delta_func = sin(2*pi*p.k2)
-        elif p.SC_type == 'd':
+        elif p.SC_type == 'dx2-y2':
             #singlet: cos(2*pi*kx) - cos(2*pi*ky)
             delta_func = cos(2*pi*p.k1) - cos(2*pi*p.k2)  #cos(2*pi*1/sqrt(3)*(2*p.k1+p.k2)) - cos(2*pi*p.k2)
         elif p.SC_type == 'f1': # x(x²-3y²)
@@ -174,7 +168,7 @@ class eliashberg:
             y_2 = roll(y_2,-1,(1,2))[:,::-1,::-1]
             y_2 = y_2.reshape(len(b.fm),p.nk,p.nwan,p.nwan) 
             y_2 = transpose(y_2,axes=(0,1,3,2))
-            if p.SC_type in {'s', 's_ext', 'd'}:
+            if p.SC_type in {'s', 's_ext', 'dx2-y2'}:
                 # singlet case: delta_ab(k) = delta_ba(-k)
                 y = (y + y_2)/2     
             elif p.SC_type in {'px', 'py', 'f1', 'f2'}:     
