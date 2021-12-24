@@ -63,7 +63,7 @@ class parameters:
         self.err_str_begin = ("System T = {} | n = {} | U = {} | tpr = {} : ").format(self.T,self.n_fill,self.u0,self.t_prime)
         
         ### Seting saving options
-        self.sp_dir  = "Odata/"
+        self.sp_dir  = "Odata_n_{}".format(self.n_fill) + "/"
         self.sp_name = "calculation_data_T_{}_U_{}_tpr_{}_n_{}.h5"
         
         #formatting middle string
@@ -92,6 +92,7 @@ class parameters:
                             'N_k2'        : self.nk2,
                             'N_k3'        : self.nk3,
                             'Lambda_IR'   : self.Lambda,
+                            'IR_tol'      : self.IR_tol,
                             'g_sfc_tol'   : self.g_sfc_tol,
                             'SC_sfc_tol'  : self.SC_sfc_tol,
                             'n_fill'      : self.n_fill,

@@ -355,9 +355,12 @@ class gfunction_calc:
         
         X = self.ckio@chan_dic[channel]
         X = X.reshape(-1, p.nk1, p.nk2, p.nk3, p.nwan**2, p.nwan**2)
-        X_eig, _ = linalg.eigh(X)
+        #X_eig, _ = linalg.eigh(X)
+        X_eig = linalg.eigvals(X)
+        if abs(imag(chan_dic[channel+'_ask'](X_eig))) > 10**(-10):
+                    print("!!!!!!! Imaginary part of chi eig_val is very large !!!!!!",file=open(p.Logstr,'a'))
+        X_eig = real(X_eig)
         return chan_dic[channel+'_ask'](X_eig)
-        
 
         
 # -----------------------------------------------------------------------------

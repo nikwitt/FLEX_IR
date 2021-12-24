@@ -18,7 +18,7 @@ class eliashberg:
 
         lam = self.scf(g, p, b, h, 0)
 
-        if real(lam) < 0 or p.SC_type == 'py':
+        if real(lam) < 0: # or p.SC_type == 'py':
             print('Another eliashberg cycle will be performed.', file=open(p.Logstr,'a'))
             print(p.err_str_begin + "lambda < 0 : => new round!"\
                , file=open(p.Logerrstr,'a'))
@@ -38,7 +38,9 @@ class eliashberg:
             
             group.require_dataset('{}_gap'.format(p.SC_type)    , data=self.delta , shape=self.delta.shape, dtype=complex)
             group.require_dataset('{}_lambda'.format(p.SC_type) , data=self.result, shape=(), dtype=complex)
-         
+            
+            group['{}_gap'.format(p.SC_type)][...]    = self.delta
+            group['{}_lambda'.format(p.SC_type)][...] = self.result
             
         
     ### Set Coulomb interaction V(r, tau_fermi)--------------------------------
@@ -47,7 +49,7 @@ class eliashberg:
         chi_charge = linalg.inv(g.E_int + g.ckio@h.C_mat)@g.ckio
         
         # Set V according to parity/SC wave type
-        if p.SC_type in {'s', 's_ext', 'dx2-y2'}: #singulet
+        if p.SC_type in {'s', 's_ext', 'dx2-y2', 'dxy'}: #singlet
             v =   3./2.* h.S_mat@chi_spin@h.S_mat \
                 - 1./2.* h.C_mat@chi_charge@h.C_mat
             #self.v_DC = (h.C_mat + h.S_mat)/2
@@ -76,23 +78,27 @@ class eliashberg:
         The setup is carried out in real space and then FT.
         """
 
+	### These are for some triangular lattice symmetry
         ### Set inital delta according to symmetry
         if p.SC_type == 's': 
             #singlet:
             delta_func = ones(p.nk)
         elif p.SC_type == 's_ext':
             #singlet: cos(kx-ky) + const or so
-            #### To be implemented
+            #### To be implemented, next line is wrong
             delta_func = ones(p.nk) + cos(2*pi*p.k1) + cos(2*pi*p.k2)   #+ cos(2*pi*1/sqrt(3)*(2*p.k1+p.k2)) + cos(2*pi*p.k2)
         elif p.SC_type == 'px':
-            #triplet: sin(2*pi*kx)
-            delta_func = sin(2*pi*p.k1)  #sin(2*pi*1/sqrt(3)*(2*p.k1+p.k2))
+            #triplet: sin(k1) + sin(k1+k2)
+            delta_func = sin(2*pi*p.k1) + sin(2*pi*(p.k1+p.k2))
         elif p.SC_type == 'py':
-            #triplet: sin(2*pi*p.ky)
-            delta_func = sin(2*pi*p.k2)
+            #triplet: sin(sqrt(3)/2 kx) * (cos(3/2 ky) - cos(sqrt(3)/2 kx))
+            delta_func = -sin(2*pi*p.k1) + 2*sin(2*pi*p.k2) + sin(2*pi*(p.k1+p.k2))
         elif p.SC_type == 'dx2-y2':
-            #singlet: cos(2*pi*kx) - cos(2*pi*ky)
-            delta_func = cos(2*pi*p.k1) - cos(2*pi*p.k2)  #cos(2*pi*1/sqrt(3)*(2*p.k1+p.k2)) - cos(2*pi*p.k2)
+            #singlet: cos(k1) - cos(k2) + cos(k1+k2)
+            delta_func = cos(2*pi*p.k1) - 2*cos(2*pi*p.k2) + cos(2*pi*(p.k1+p.k2))
+        elif p.SC_type == 'dxy':
+            #singlet: cos(k1) - cos(k2)
+            delta_func = cos(2*pi*p.k1) - cos(2*pi*p.k2)
         elif p.SC_type == 'f1': # x(x²-3y²)
             #triplet: sin(      1/2 ky) * (cos(1/2 ky) - cos(sqrt(3)/2 kx))
             delta_func = sin(2*pi*p.k2/2)*(cos(2*pi*p.k2/2)-cos(2*pi*(2*p.k1+p.k2)/2))
@@ -168,7 +174,7 @@ class eliashberg:
             y_2 = roll(y_2,-1,(1,2))[:,::-1,::-1]
             y_2 = y_2.reshape(len(b.fm),p.nk,p.nwan,p.nwan) 
             y_2 = transpose(y_2,axes=(0,1,3,2))
-            if p.SC_type in {'s', 's_ext', 'dx2-y2'}:
+            if p.SC_type in {'s', 's_ext', 'dx2-y2', 'dxy'}:
                 # singlet case: delta_ab(k) = delta_ba(-k)
                 y = (y + y_2)/2     
             elif p.SC_type in {'px', 'py', 'f1', 'f2'}:     
