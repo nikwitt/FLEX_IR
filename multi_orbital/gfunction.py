@@ -285,7 +285,7 @@ class gfunction_calc:
         grit = grit.reshape(len(b.fm),p.nk*p.nwan**2)
         self.grit_b = dot(b.fermi_iw_to_tau_boson, grit).reshape(len(b.bt),p.nk,p.nwan,p.nwan)
         self.grit_f = dot(b.fermi_iw_to_tau,       grit).reshape(len(b.ft),p.nk,p.nwan,p.nwan)
-        self.grit_f_0 = dot(b.fermi_iw_to_tau_0, grit_0).reshape(p.nwan,p.nwan)
+        self.grit_f_0 = - dot(b.fermi_iw_to_tau_0, grit_0).reshape(p.nwan,p.nwan)
         
 
     ### Set chi_0(k, iv_m) ----------------------------------------------------
