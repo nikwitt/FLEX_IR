@@ -99,10 +99,10 @@ class eliashberg:
         elif p.SC_type == 'dxy':
             #singlet: cos(k1) - cos(k2)
             delta_func = cos(2*pi*p.k1) - cos(2*pi*p.k2)
-        elif p.SC_type == 'f1': # x(x²-3y²)
+        elif p.SC_type == 'f1': # x(xÂ²-3yÂ²)
             #triplet: sin(      1/2 ky) * (cos(1/2 ky) - cos(sqrt(3)/2 kx))
             delta_func = sin(2*pi*p.k2/2)*(cos(2*pi*p.k2/2)-cos(2*pi*(2*p.k1+p.k2)/2))
-        elif p.SC_type == 'f2': # y(3x²-y²)
+        elif p.SC_type == 'f2': # y(3xÂ²-yÂ²)
             #triplet: sin(sqrt(3)/2 kx) * (cos(3/2 ky) - cos(sqrt(3)/2 kx))
             delta_func = sin(2*pi*(2*p.k1+p.k2)/2)*(cos(2*pi*3*p.k2/2)-cos(2*pi*(2*p.k1+p.k2)/2))
             
@@ -124,7 +124,7 @@ class eliashberg:
         self.f = dot(b.fermi_iw_to_tau, f).reshape(len(b.ft),p.nk,p.nwan,p.nwan)
         
         f = f.reshape(len(b.fm), p.nk, p.nwan**2)
-        self.f_0 = dot(b.fermi_iw_to_tau_0, f[:,0]).reshape(p.nwan,p.nwan)
+        self.f_0 = - dot(b.fermi_iw_to_tau_0, f[:,0]).reshape(p.nwan,p.nwan)
 
 
     ##############
